@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SomAutomotivoPro Mobile</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f19',
+                        cardBg: '#131c2e',
+                        cardBgHover: '#1e293b',
+                        accent: '#f59e0b',
+                        accentHover: '#d97706',
+                        accentGlow: 'rgba(245, 158, 11, 0.15)'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-darkBg text-slate-100 min-h-screen flex flex-col justify-between selection:bg-accent selection:text-slate-950">
+
+    <!-- Mobile App Container (Max-width restricted to simulate a phone frame on desktop, full-width on mobile) -->
+    <div id="appContainer" class="w-full max-w-md mx-auto bg-darkBg min-h-screen flex flex-col shadow-2xl relative pb-20">
+
+        <!-- Top Header -->
+        <header class="bg-cardBg/90 backdrop-blur-md border-b border-slate-800/80 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2.5">
+                <div class="bg-gradient-to-tr from-amber-500 to-orange-600 w-9 h-9 rounded-xl flex items-center justify-center shadow-md shadow-amber-500/20 text-slate-950 font-black">
+                    <i class="fa-solid fa-bolt text-base"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold tracking-tight text-white leading-tight">SomAutomotivoPro</h1>
+                    <p class="text-[10px] text-amber-400 font-medium tracking-wide">Versão Mobile 1.0</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+                <button onclick="openExportModal()" class="w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700/60 text-slate-300 hover:text-amber-400 flex items-center justify-center transition active:scale-95" title="Exportar Resumo">
+                    <i class="fa-solid fa-file-export text-sm"></i>
+                </button>
+                <button onclick="resetProject()" class="w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700/60 text-slate-300 hover:text-red-400 flex items-center justify-center transition active:scale-95" title="Limpar Projeto">
+                    <i class="fa-solid fa-rotate-right text-sm"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Scrollable Content Area -->
+        <main class="flex-grow p-4 overflow-y-auto no-scrollbar">
+
+            <!-- TAB 1: HOME / DASHBOARD & SUMMARY -->
+            <section id="screen-home" class="space-y-4 tab-screen">
+                <!-- Welcome Banner -->
+                <div class="bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-transparent border border-amber-500/20 rounded-2xl p-4 flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-bold text-white">Planejamento Ativo</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Gerencie seus módulos, falantes e bateria.</p>
+                    </div>
+                    <button onclick="switchTab('calculator')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/25 transition active:scale-95">
+                        <i class="fa-solid fa-plus mr-1"></i> Adicionar
+                    </button>
+                </div>
+
+                <!-- Live Power & Amperage Metrics Card -->
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-5 shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-8 -top-8 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl"></div>
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-chart-pie text-amber-500"></i> Consumo & Potência
+                        </span>
+                        <span id="badgeItemCount" class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">0 aparelhos</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-3.5">
+                            <span class="block text-[11px] text-slate-400 mb-1">Potência RMS Total</span>
+                            <span id="resTotalPower" class="text-xl font-extrabold text-white">0 <span class="text-xs font-normal text-amber-400">W</span></span>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800/80 rounded-xl p-3.5">
+                            <span class="block text-[11px] text-slate-400 mb-1">Consumo Pico Musical</span>
+                            <span id="resPeakAmp" class="text-xl font-extrabold text-amber-400">0 <span class="text-xs font-normal text-slate-400">A</span></span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 pt-3 border-t border-slate-800 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-car-battery text-amber-500"></i> Bateria Auxiliar Mínima:</span>
+                            <span id="resBattery" class="font-bold text-white">60 Ah</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-plug text-amber-500"></i> Alternador Recomendado:</span>
+                            <span id="resAlternator" class="font-bold text-white">Original</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-shield text-amber-500"></i> Fusível / Disjuntor Geral:</span>
+                            <span id="resFuse" class="font-bold text-amber-400">30 A</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400 flex items-center gap-1.5"><i class="fa-solid fa-wire text-amber-500"></i> Cabo Positivo Principal:</span>
+                            <span id="resMainWire" class="font-bold text-white">10 mm² (7 AWG)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions Grid -->
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="switchTab('calculator')" class="bg-cardBg hover:bg-cardBgHover border border-slate-800 p-4 rounded-2xl text-left transition flex flex-col justify-between group active:scale-95">
+                        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-calculator text-base"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-white">Calculadora</span>
+                            <span class="text-[11px] text-slate-400">Adicionar e somar módulos</span>
+                        </div>
+                    </button>
+                    <button onclick="switchTab('catalog')" class="bg-cardBg hover:bg-cardBgHover border border-slate-800 p-4 rounded-2xl text-left transition flex flex-col justify-between group active:scale-95">
+                        <div class="w-9 h-9 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-store text-base"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-white">Catálogo BR</span>
+                            <span class="text-[11px] text-slate-400">Taramps, Eros, Stetsom...</span>
+                        </div>
+                    </button>
+                    <button onclick="switchTab('wiring')" class="bg-cardBg hover:bg-cardBgHover border border-slate-800 p-4 rounded-2xl text-left transition flex flex-col justify-between group active:scale-95">
+                        <div class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-diagram-project text-base"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-white">Esquema & Fiação</span>
+                            <span class="text-[11px] text-slate-400">Guia passo a passo</span>
+                        </div>
+                    </button>
+                    <button onclick="openExportModal()" class="bg-cardBg hover:bg-cardBgHover border border-slate-800 p-4 rounded-2xl text-left transition flex flex-col justify-between group active:scale-95">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3 group-hover:scale-110 transition">
+                            <i class="fa-solid fa-file-lines text-base"></i>
+                        </div>
+                        <div>
+                            <span class="block text-sm font-bold text-white">Resumo Prático</span>
+                            <span class="text-[11px] text-slate-400">Copiar ou exportar</span>
+                        </div>
+                    </button>
+                </div>
+            </section>
+
+            <!-- TAB 2: CALCULATOR & EQUIPMENT -->
+            <section id="screen-calculator" class="space-y-4 tab-screen hidden">
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 shadow-xl space-y-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sliders text-amber-500"></i> Configuração do Sistema
+                    </h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-1">Tensão (Volts)</label>
+                            <select id="sysVoltage" onchange="recalculateProject()" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                                <option value="12">12V (Padrão)</option>
+                                <option value="12.6" selected>12.6V (Carregada)</option>
+                                <option value="13.8">13.8V (Alternador)</option>
+                                <option value="14.4">14.4V (Fonte)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-1">Distância Cabos (m)</label>
+                            <input type="number" id="wireDist" value="4" min="1" max="15" step="0.5" oninput="recalculateProject()" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Equipment Form Card -->
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 shadow-xl space-y-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-circle-plus text-amber-500"></i> Adicionar Aparelho
+                    </h2>
+
+                    <div class="space-y-2.5">
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-1">Tipo de Equipamento</label>
+                            <select id="eqType" onchange="toggleFormMode()" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                                <option value="amplifier">Amplificador / Módulo</option>
+                                <option value="subwoofer">Subwoofer</option>
+                                <option value="speaker">Alto-Falante / Driver / Tweeter</option>
+                                <option value="player">Player / CD / Processador</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-medium text-slate-400 mb-1">Nome / Marca / Modelo</label>
+                            <input type="text" id="eqName" placeholder="Ex: Taramps MD 3000.1" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2">
+                            <div>
+                                <label id="lblPower" class="block text-[10px] font-medium text-slate-400 mb-1">RMS (Watts)</label>
+                                <input type="number" id="eqPower" value="1000" min="0" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                            </div>
+                            <div>
+                                <label id="lblImp" class="block text-[10px] font-medium text-slate-400 mb-1">Impedância</label>
+                                <select id="eqImp" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-2 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                                    <option value="1">1 Ω</option>
+                                    <option value="2" selected>2 Ω</option>
+                                    <option value="4">4 Ω</option>
+                                    <option value="8">8 Ω</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-medium text-slate-400 mb-1">Qtd</label>
+                                <input type="number" id="eqQty" value="1" min="1" max="20" class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-2.5 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                            </div>
+                        </div>
+
+                        <button onclick="addEquipmentItem()" class="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 transition active:scale-95 flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Inserir no Projeto
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Added Equipment List -->
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 shadow-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-amber-500"></i> Aparelhos Adicionados
+                        </h2>
+                        <span id="listCounter" class="text-[10px] bg-slate-800 text-amber-400 px-2 py-0.5 rounded-full border border-slate-700">0 itens</span>
+                    </div>
+
+                    <div id="equipmentContainer" class="space-y-2 max-h-60 overflow-y-auto no-scrollbar">
+                        <!-- Injected dynamically -->
+                    </div>
+                    <div id="emptyStateBox" class="text-center py-6 text-slate-500 text-xs">
+                        <i class="fa-solid fa-box-open text-2xl mb-1 text-slate-600"></i>
+                        <p>Nenhum aparelho inserido.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: MARKET CATALOG (BR) -->
+            <section id="screen-catalog" class="space-y-4 tab-screen hidden">
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 shadow-xl space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-store text-amber-500"></i> Catálogo do Mercado (BR)
+                        </h2>
+                        <span class="text-[10px] text-slate-400">Clique para adicionar</span>
+                    </div>
+                    <!-- Search Input -->
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500 text-xs"></i>
+                        <input type="text" id="catalogSearch" oninput="filterCatalog()" placeholder="Buscar Taramps, Soundigital, Eros..." class="w-full bg-slate-900 border border-slate-700/80 rounded-xl pl-9 pr-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                    </div>
+                </div>
+
+                <!-- Catalog Grid/List -->
+                <div id="catalogListContainer" class="space-y-2.5">
+                    <!-- Populated via JS -->
+                </div>
+            </section>
+
+            <!-- TAB 4: WIRING & INSTALLATION GUIDE -->
+            <section id="screen-wiring" class="space-y-4 tab-screen hidden">
+                <!-- Visual Schematic Diagram -->
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 shadow-xl space-y-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-diagram-project text-amber-500"></i> Esquema Elétrico Passo a Passo
+                    </h2>
+
+                    <div class="space-y-2.5 text-xs">
+                        <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center shrink-0 font-bold">1</div>
+                            <div>
+                                <p class="font-bold text-white">Bateria Principal & Auxiliar</p>
+                                <p class="text-slate-400 text-[11px] mt-0.5">Ligue em paralelo usando cabo de mesma bitola (positivo com positivo, negativo na lata).</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-center text-amber-500"><i class="fa-solid fa-arrow-down text-xs animate-bounce"></i></div>
+                        <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0 font-bold">2</div>
+                            <div>
+                                <p class="font-bold text-white">Porta-Fusível ou Disjuntor Geral</p>
+                                <p class="text-slate-400 text-[11px] mt-0.5">Instalado a até 30 cm do polo positivo da bateria auxiliar para proteção contra curtos.</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-center text-amber-500"><i class="fa-solid fa-arrow-down text-xs animate-bounce"></i></div>
+                        <div class="p-3 bg-slate-900/90 border border-slate-800 rounded-xl flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0 font-bold">3</div>
+                            <div>
+                                <p class="font-bold text-white">Módulos Amplificadores (B+ e GND)</p>
+                                <p class="text-slate-400 text-[11px] mt-0.5">Conecte a alimentação principal e o cabo Remote (REM) vindo do Player de som.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wire Gauge Reference Table -->
+                <div class="bg-cardBg border border-slate-800/90 rounded-2xl p-4 shadow-xl space-y-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-table text-amber-500"></i> Tabela de Bitola de Cabos (Cobre)
+                    </h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-[11px] text-slate-300">
+                            <thead class="bg-slate-900 text-slate-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-2 rounded-l-lg">Corrente (Amps)</th>
+                                    <th class="p-2">Até 5 Metros</th>
+                                    <th class="p-2 rounded-r-lg">Até 15 Metros</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                                <tr><td class="p-2 font-medium">Até 40A</td><td class="p-2 text-amber-400">10 mm²</td><td class="p-2">16 mm²</td></tr>
+                                <tr><td class="p-2 font-medium">Até 60A</td><td class="p-2 text-amber-400">16 mm²</td><td class="p-2">21 mm²</td></tr>
+                                <tr><td class="p-2 font-medium">Até 100A</td><td class="p-2 text-amber-400">25 mm²</td><td class="p-2">35 mm²</td></tr>
+                                <tr><td class="p-2 font-medium">Até 150A</td><td class="p-2 text-amber-400">35 mm²</td><td class="p-2">50 mm²</td></tr>
+                                <tr><td class="p-2 font-medium">Até 250A</td><td class="p-2 text-amber-400">50 mm²</td><td class="p-2">70 mm²</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Bottom Tab Bar (Native Mobile App Style) -->
+        <nav class="bg-cardBg/95 backdrop-blur-md border-t border-slate-800 fixed bottom-0 left-0 right-0 max-w-md mx-auto z-50 px-2 py-2 flex items-center justify-around shadow-2xl">
+            <button onclick="switchTab('home')" id="tab-btn-home" class="flex flex-col items-center py-1 px-3 text-amber-500 transition tab-nav-btn">
+                <i class="fa-solid fa-house text-lg mb-0.5"></i>
+                <span class="text-[10px] font-semibold">Início</span>
+            </button>
+            <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition tab-nav-btn">
+                <i class="fa-solid fa-calculator text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Calculadora</span>
+            </button>
+            <button onclick="switchTab('catalog')" id="tab-btn-catalog" class="flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition tab-nav-btn">
+                <i class="fa-solid fa-store text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Catálogo</span>
+            </button>
+            <button onclick="switchTab('wiring')" id="tab-btn-wiring" class="flex flex-col items-center py-1 px-3 text-slate-400 hover:text-slate-200 transition tab-nav-btn">
+                <i class="fa-solid fa-diagram-project text-lg mb-0.5"></i>
+                <span class="text-[10px] font-medium">Esquema</span>
+            </button>
+        </nav>
+
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cardBg border border-slate-800 rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-export text-amber-500"></i> Resumo do Projeto</h3>
+                <button onclick="closeExportModal()" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+            <textarea id="exportTextOutput" readonly class="w-full h-44 bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none resize-none custom-scrollbar"></textarea>
+            <div class="flex gap-2">
+                <button onclick="copyExportText()" class="flex-1 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs rounded-xl shadow-md transition active:scale-95 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-copy"></i> Copiar Texto
+                </button>
+                <button onclick="downloadJsonProject()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs rounded-xl border border-slate-700 transition active:scale-95 flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-download"></i> JSON
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application JavaScript -->
+    <script>
+        // Database of Brazilian Market Products
+        const catalogDatabase = [
+            { id: 'c1', brand: 'Taramps', model: 'MD 3000.1 (2 Ohms)', type: 'amplifier', power: 3000, imp: 2 },
+            { id: 'c2', brand: 'Taramps', model: 'Big Boss 3 (8 Ohms)', type: 'amplifier', power: 30000, imp: 8 },
+            { id: 'c3', brand: 'Soundigital', model: '400.4 EVOX', type: 'amplifier', power: 400, imp: 2 },
+            { id: 'c4', brand: 'Stetsom', model: 'EX 5000 Black (1 Ohm)', type: 'amplifier', power: 5000, imp: 1 },
+            { id: 'c5', brand: 'Eros', model: 'Hammer 3.0K (15")', type: 'subwoofer', power: 1500, imp: 4 },
+            { id: 'c6', brand: 'JBL Selenium', model: 'Tornado 2200', type: 'subwoofer', power: 1100, imp: 4 },
+            { id: 'c7', brand: 'Pioneer', model: 'TS-W312D4', type: 'subwoofer', power: 500, imp: 4 },
+            { id: 'c8', brand: 'JBL Selenium', model: 'D250-X (Driver)', type: 'speaker', power: 100, imp: 8 },
+            { id: 'c9', brand: 'Stetsom', model: 'Super Tweeter STT4200', type: 'speaker', power: 120, imp: 8 }
+        ];
+
+        // Active project state
+        let projectEquipment = [];
+
+        // Tab Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-screen').forEach(el => el.classList.add('hidden'));
+            document.getElementById('screen-' + tabId).classList.remove('hidden');
+
+            document.querySelectorAll('.tab-nav-btn').forEach(btn => {
+                btn.classList.remove('text-amber-500');
+                btn.classList.add('text-slate-400');
+            });
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-slate-400');
+                activeBtn.classList.add('text-amber-500');
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Toggle form inputs based on equipment type
+        function toggleFormMode() {
+            const type = document.getElementById('eqType').value;
+            const lblPower = document.getElementById('lblPower');
+            const lblImp = document.getElementById('lblImp');
+            const impSelect = document.getElementById('eqImp');
+
+            if (type === 'player') {
+                lblPower.innerText = 'Consumo (W)';
+                lblImp.innerText = 'Canais';
+                impSelect.disabled = true;
+            } else {
+                lblPower.innerText = 'RMS (Watts)';
+                lblImp.innerText = 'Impedância';
+                impSelect.disabled = false;
+            }
+        }
+
+        // Add item from manual form
+        function addEquipmentItem() {
+            const type = document.getElementById('eqType').value;
+            const nameInput = document.getElementById('eqName').value.trim();
+            const power = parseFloat(document.getElementById('eqPower').value) || 0;
+            const imp = document.getElementById('eqImp').value;
+            const qty = parseInt(document.getElementById('eqQty').value) || 1;
+
+            const name = nameInput !== '' ? nameInput : (type.charAt(0).toUpperCase() + type.slice(1));
+
+            projectEquipment.push({
+                id: Date.now() + Math.random(),
+                type: type,
+                name: name,
+                power: power,
+                imp: imp,
+                qty: qty
+            });
+
+            document.getElementById('eqName').value = '';
+            recalculateProject();
+        }
+
+        // Add item directly from market catalog
+        function addCatalogItem(catalogId) {
+            const item = catalogDatabase.find(i => i.id === catalogId);
+            if (!item) return;
+
+            projectEquipment.push({
+                id: Date.now() + Math.random(),
+                type: item.type,
+                name: `${item.brand} ${item.model}`,
+                power: item.power,
+                imp: item.imp,
+                qty: 1
+            });
+
+            recalculateProject();
+            switchTab('calculator');
+        }
+
+        // Remove item from project list
+        function removeItem(id) {
+            projectEquipment = projectEquipment.filter(item => item.id !== id);
+            recalculateProject();
+        }
+
+        // Reset project
+        function resetProject() {
+            projectEquipment = [];
+            recalculateProject();
+        }
+
+        // Main Calculation Engine
+        function recalculateProject() {
+            const voltage = parseFloat(document.getElementById('sysVoltage').value) || 12.6;
+            const distance = parseFloat(document.getElementById('wireDist').value) || 4;
+
+            let totalPowerRMS = 0;
+            let container = document.getElementById('equipmentContainer');
+            let emptyBox = document.getElementById('emptyStateBox');
+            let badgeCount = document.getElementById('badgeItemCount');
+            let listCounter = document.getElementById('listCounter');
+
+            container.innerHTML = '';
+
+            if (projectEquipment.length === 0) {
+                emptyBox.classList.remove('hidden');
+                badgeCount.innerText = '0 aparelhos';
+                listCounter.innerText = '0 itens';
+                updateDashboard(0, 0, voltage, distance);
+                return;
+            }
+
+            emptyBox.classList.add('hidden');
+            badgeCount.innerText = `${projectEquipment.length} ${projectEquipment.length === 1 ? 'aparelho' : 'aparelhos'}`;
+            listCounter.innerText = `${projectEquipment.length} itens`;
+
+            projectEquipment.forEach(item => {
+                const itemTotalPower = item.power * item.qty;
+                totalPowerRMS += itemTotalPower;
+
+                let typeLabel = 'Módulo';
+                let tagColor = 'bg-blue-500/20 text-blue-400 border-blue-500/30';
+                if (item.type === 'subwoofer') { typeLabel = 'Sub'; tagColor = 'bg-purple-500/20 text-purple-400 border-purple-500/30'; }
+                if (item.type === 'speaker') { typeLabel = 'Falante'; tagColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'; }
+                if (item.type === 'player') { typeLabel = 'Player'; tagColor = 'bg-amber-500/20 text-amber-400 border-amber-500/30'; }
+
+                const row = document.createElement('div');
+                row.className = 'bg-slate-900/80 border border-slate-800 rounded-xl p-3 flex items-center justify-between text-xs';
+                row.innerHTML = `
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-md border text-[10px] ${tagColor}">${typeLabel}</span>
+                            <span class="font-bold text-white">${item.name}</span>
+                        </div>
+                        <p class="text-slate-400 text-[11px]">${item.power}W RMS &bull; ${item.qty} un &bull; ${item.type === 'player' ? item.imp + ' canais' : item.imp + 'Ω'}</p>
+                    </div>
+                    <button onclick="removeItem(${item.id})" class="text-red-400 hover:text-red-300 p-2 transition"><i class="fa-solid fa-trash-can text-sm"></i></button>
+                `;
+                container.appendChild(row);
+            });
+
+            // Peak Musical Current Calculation Formula
+            let peakCurrent = (totalPowerRMS / voltage) * 0.75;
+            if (peakCurrent < 10 && totalPowerRMS > 0) peakCurrent = 15;
+
+            updateDashboard(totalPowerRMS, peakCurrent, voltage, distance);
+        }
+
+        // Update UI Dashboard Metrics
+        function updateDashboard(power, current, voltage, distance) {
+            document.getElementById('resTotalPower').innerHTML = `${power.toLocaleString('pt-BR')} <span class="text-xs font-normal text-amber-400">W</span>`;
+            document.getElementById('resPeakAmp').innerHTML = `${Math.ceil(current)} <span class="text-xs font-normal text-slate-400">A</span>`;
+
+            let recBattery = Math.max(60, Math.ceil(current * 0.8));
+            document.getElementById('resBattery').innerText = `${recBattery} Ah`;
+
+            let recAlt = current > 120 ? 'Original + Extra 120A' : (current > 60 ? 'Original + 90A' : 'Original de Fábrica');
+            document.getElementById('resAlternator').innerText = recAlt;
+
+            let fuseSize = Math.ceil(current / 10) * 10;
+            if (fuseSize < 30) fuseSize = 30;
+            document.getElementById('resFuse').innerText = `${fuseSize} A`;
+
+            let wireSpec = calculateWireGauge(current, distance);
+            document.getElementById('resMainWire').innerText = wireSpec;
+        }
+
+        // Wire Gauge Calculator Lookup
+        function calculateWireGauge(amps, meters) {
+            if (amps <= 40) return meters <= 5 ? '10 mm² (7 AWG)' : '16 mm² (6 AWG)';
+            if (amps <= 60) return meters <= 5 ? '16 mm² (6 AWG)' : '21 mm² (4 AWG)';
+            if (amps <= 100) return meters <= 5 ? '25 mm² (3 AWG)' : '35 mm² (2 AWG)';
+            if (amps <= 150) return meters <= 5 ? '35 mm² (2 AWG)' : '50 mm² (1/0 AWG)';
+            return '50 mm² a 70 mm²';
+        }
+
+        // Render Market Catalog List
+        function renderCatalog(filterText = '') {
+            const container = document.getElementById('catalogListContainer');
+            container.innerHTML = '';
+
+            const filtered = catalogDatabase.filter(item => 
+                item.brand.toLowerCase().includes(filterText.toLowerCase()) ||
+                item.model.toLowerCase().includes(filterText.toLowerCase())
+            );
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'bg-cardBg hover:bg-cardBgHover border border-slate-800 rounded-xl p-3 flex items-center justify-between transition cursor-pointer';
+                card.onclick = () => addCatalogItem(item.id);
+                card.innerHTML = `
+                    <div class="space-y-0.5">
+                        <span class="text-[10px] bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-md border border-amber-500/20">${item.brand}</span>
+                        <h4 class="text-xs font-bold text-white mt-1">${item.model}</h4>
+                        <p class="text-[11px] text-slate-400">${item.power}W RMS &bull; ${item.imp} Ohms</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function filterCatalog() {
+            const query = document.getElementById('catalogSearch').value;
+            renderCatalog(query);
+        }
+
+        // Export Modal Functions
+        function openExportModal() {
+            const modal = document.getElementById('exportModal');
+            const textarea = document.getElementById('exportTextOutput');
+
+            let summary = `=== RESUMO PROJETO SOM AUTOMOTIVO ===\n`;
+            summary += `Total Aparelhos: ${projectEquipment.length}\n`;
+            summary += `Potência RMS: ${document.getElementById('resTotalPower').innerText}\n`;
+            summary += `Consumo Pico: ${document.getElementById('resPeakAmp').innerText}\n`;
+            summary += `Bateria Recomendada: ${document.getElementById('resBattery').innerText}\n`;
+            summary += `Cabo Positivo: ${document.getElementById('resMainWire').innerText}\n`;
+            summary += `Disjuntor Geral: ${document.getElementById('resFuse').innerText}\n\n`;
+            summary += `APARELHOS:\n`;
+            projectEquipment.forEach((item, idx) => {
+                summary += `${idx + 1}. [${item.type.toUpperCase()}] ${item.name} - ${item.power}W (${item.qty}un)\n`;
+            });
+
+            textarea.value = summary;
+            modal.classList.remove('hidden');
+        }
+
+        function closeExportModal() {
+            document.getElementById('exportModal').classList.add('hidden');
+        }
+
+        function copyExportText() {
+            const textarea = document.getElementById('exportTextOutput');
+            textarea.select();
+            document.execCommand('copy');
+            alert('Resumo copiado para a área de transferência!');
+        }
+
+        function downloadJsonProject() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectEquipment, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", "projeto_som_automotivo.json");
+            dlAnchorElem.click();
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            renderCatalog();
+            recalculateProject();
+        };
+    </script>
+</body>
+</html>
